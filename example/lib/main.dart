@@ -109,7 +109,9 @@ class _MyAppState extends State<MyApp> {
   // method to scan devices according PrinterType
   void _scan() {
     devices.clear();
-    _subscription = printerManager.discovery(type: defaultPrinterType, isBle: _isBle).listen((device) {
+    _subscription = printerManager
+        .discovery(type: defaultPrinterType, isBle: _isBle, model: TcpPrinterInput(ipAddress: "192.168.21.123", port: 9100))
+        .listen((device) {
       devices.add(BluetoothPrinter(
         deviceName: device.name,
         address: device.address,
@@ -119,7 +121,7 @@ class _MyAppState extends State<MyApp> {
         typePrinter: defaultPrinterType,
       ));
       setState(() {});
-    });
+    }, onError: (e) {});
   }
 
   void setPort(String value) {
@@ -149,7 +151,8 @@ class _MyAppState extends State<MyApp> {
 
   void selectDevice(BluetoothPrinter device) async {
     if (selectedPrinter != null) {
-      if ((device.address != selectedPrinter!.address) || (device.typePrinter == PrinterType.usb && selectedPrinter!.vendorId != device.vendorId)) {
+      if ((device.address != selectedPrinter!.address) ||
+          (device.typePrinter == PrinterType.usb && selectedPrinter!.vendorId != device.vendorId)) {
         await PrinterManager.instance.disconnect(type: selectedPrinter!.typePrinter);
       }
     }
@@ -178,7 +181,8 @@ class _MyAppState extends State<MyApp> {
 
     // sum width total column must be 12
     bytes += generator.row([
-      PosColumn(width: 8, text: 'Lemon lime export quality per pound x 5 units', styles: const PosStyles(align: PosAlign.left)),
+      PosColumn(
+          width: 8, text: 'Lemon lime export quality per pound x 5 units', styles: const PosStyles(align: PosAlign.left)),
       PosColumn(width: 4, text: 'USD 2.00', styles: const PosStyles(align: PosAlign.right)),
     ]);
 
@@ -238,7 +242,10 @@ class _MyAppState extends State<MyApp> {
         bytes += generator.cut();
         await printerManager.connect(
             type: bluetoothPrinter.typePrinter,
-            model: UsbPrinterInput(name: bluetoothPrinter.deviceName, productId: bluetoothPrinter.productId, vendorId: bluetoothPrinter.vendorId));
+            model: UsbPrinterInput(
+                name: bluetoothPrinter.deviceName,
+                productId: bluetoothPrinter.productId,
+                vendorId: bluetoothPrinter.vendorId));
         pendingTask = null;
         break;
       case PrinterType.bluetooth:
@@ -256,7 +263,8 @@ class _MyAppState extends State<MyApp> {
       case PrinterType.network:
         bytes += generator.feed(2);
         bytes += generator.cut();
-        connectedTCP = await printerManager.connect(type: bluetoothPrinter.typePrinter, model: TcpPrinterInput(ipAddress: bluetoothPrinter.address!));
+        connectedTCP = await printerManager.connect(
+            type: bluetoothPrinter.typePrinter, model: TcpPrinterInput(ipAddress: bluetoothPrinter.address!));
         if (!connectedTCP) debugPrint(' --- please review your connection ---');
         break;
       default:
@@ -282,7 +290,10 @@ class _MyAppState extends State<MyApp> {
       case PrinterType.usb:
         await printerManager.connect(
             type: selectedPrinter!.typePrinter,
-            model: UsbPrinterInput(name: selectedPrinter!.deviceName, productId: selectedPrinter!.productId, vendorId: selectedPrinter!.vendorId));
+            model: UsbPrinterInput(
+                name: selectedPrinter!.deviceName,
+                productId: selectedPrinter!.productId,
+                vendorId: selectedPrinter!.vendorId));
         _isConnected = true;
         break;
       case PrinterType.bluetooth:
@@ -295,7 +306,8 @@ class _MyAppState extends State<MyApp> {
                 autoConnect: _reconnect));
         break;
       case PrinterType.network:
-        await printerManager.connect(type: selectedPrinter!.typePrinter, model: TcpPrinterInput(ipAddress: selectedPrinter!.address!));
+        await printerManager.connect(
+            type: selectedPrinter!.typePrinter, model: TcpPrinterInput(ipAddress: selectedPrinter!.address!));
         _isConnected = true;
         break;
       default:
@@ -339,7 +351,8 @@ class _MyAppState extends State<MyApp> {
                             onPressed: selectedPrinter == null || !_isConnected
                                 ? null
                                 : () {
-                                    if (selectedPrinter != null) printerManager.disconnect(type: selectedPrinter!.typePrinter);
+                                    if (selectedPrinter != null)
+                                      printerManager.disconnect(type: selectedPrinter!.typePrinter);
                                     setState(() {
                                       _isConnected = false;
                                     });

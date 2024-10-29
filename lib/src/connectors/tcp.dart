@@ -4,10 +4,10 @@ import 'dart:typed_data';
 import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pos_printer_platform/src/models/printer_device.dart';
+import 'package:network_discovery/network_discovery.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:flutter_pos_printer_platform/discovery.dart';
 import 'package:flutter_pos_printer_platform/printer.dart';
-import 'package:ping_discover_network_forked/ping_discover_network_forked.dart';
 
 class TcpPrinterInput extends BasePrinterInput {
   final String ipAddress;
@@ -40,7 +40,8 @@ class TcpPrinterConnector implements PrinterConnector<TcpPrinterInput> {
   Stream<TCPStatus> get _statusStream => _statusStreamController.stream;
   final StreamController<TCPStatus> _statusStreamController = StreamController.broadcast();
 
-  static Future<List<PrinterDiscovered<TcpPrinterInfo>>> discoverPrinters({String? ipAddress, int? port, Duration? timeOut}) async {
+  static Future<List<PrinterDiscovered<TcpPrinterInfo>>> discoverPrinters(
+      {String? ipAddress, int? port, Duration? timeOut}) async {
     final List<PrinterDiscovered<TcpPrinterInfo>> result = [];
     final defaultPort = port ?? 9100;
 
@@ -53,16 +54,11 @@ class TcpPrinterConnector implements PrinterConnector<TcpPrinterInput> {
     final String subnet = deviceIp.substring(0, deviceIp.lastIndexOf('.'));
     // final List<String> ips = List.generate(255, (index) => '$subnet.$index');
 
-    final stream = NetworkAnalyzer.discover2(
-      subnet,
-      defaultPort,
-      timeout: timeOut ?? Duration(milliseconds: 4000),
-    );
+    final stream = NetworkDiscovery.discover(subnet, defaultPort, timeout: timeOut ?? Duration(milliseconds: 4000));
 
     await for (var addr in stream) {
-      if (addr.exists) {
-        result.add(PrinterDiscovered<TcpPrinterInfo>(name: "${addr.ip}:$defaultPort", detail: TcpPrinterInfo(address: addr.ip)));
-      }
+      result
+          .add(PrinterDiscovered<TcpPrinterInfo>(name: "${addr.ip}:$defaultPort", detail: TcpPrinterInfo(address: addr.ip)));
     }
 
     return result;
@@ -85,12 +81,10 @@ class TcpPrinterConnector implements PrinterConnector<TcpPrinterInput> {
     final String subnet = deviceIp!.substring(0, deviceIp.lastIndexOf('.'));
     // final List<String> ips = List.generate(255, (index) => '$subnet.$index');
     try {
-      final stream = NetworkAnalyzer.discover2(subnet, defaultPort);
+      final stream = NetworkDiscovery.discover(subnet, defaultPort);
 
       await for (var data in stream.map((message) => message)) {
-        if (data.exists) {
-          yield PrinterDevice(name: "${data.ip}:$defaultPort", address: data.ip);
-        }
+        yield PrinterDevice(name: "${data.ip}:$defaultPort", address: data.ip);
       }
     } catch (e) {}
   }
