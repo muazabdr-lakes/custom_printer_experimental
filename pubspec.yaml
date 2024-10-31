@@ -19,7 +19,7 @@ dependencies:
   network_info_plus: ^5.0.3
   network_discovery:
     git:
-      url: https://github.com/muazabdr-lakes/network_discovery.git
+      url: https://github.com/lakes-id/flutter-network-discovery.git
   rxdart: ^0.28.0
   gbk_codec: ^0.4.0
   hex: ^0.2.0
